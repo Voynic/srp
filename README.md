@@ -31,7 +31,7 @@ The client now sends it's `identifier`, `s`, and `v` values to the server for st
 
 ## Session Creation
 
-##### Client
+#### Client
 
 ```go
 // The client's identifier and passphrase, registered with the server.
@@ -48,7 +48,7 @@ if err != nil {
 
 The client now sends it's `identifier` and `A` to the server.
 
-##### Server
+#### Server
 
 ```go
 // The server receives a client's "identifier" and "A" value. Assume the
@@ -71,7 +71,7 @@ if err != nil {
 
 The server should now persist the value of `K`, and send `s` and `B` to the client.
 
-##### Client
+#### Client
 
 ```go
 // The client receives its salt "s" along with a public key "B" from the server.
@@ -92,13 +92,15 @@ if err != nil {
 
 At this point, the client and server will have a shared secret `K` if the authentication was successful. The shared secret can be verified as follows:
 
-##### Client
+#### Client
 
 ```go
 proof := srp.Hash(K)
 ```
 
  The client can then send `proof` to the server for easy verification, and demand proof of its own.
+
+#### Server
 
 ```go
 // The server received the client's proof, and assigns it to the variable below:
@@ -113,6 +115,8 @@ serverProof := srp.Hash(s, K)
 ```
 
 Now the server sends `serverProof` to the client.
+
+#### Client
 
 ```go
 // The client received the server's proof, and assigns it to the variable below:
