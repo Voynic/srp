@@ -35,8 +35,9 @@ func randomBytes(n int) ([]byte, error) {
 }
 
 //
-// Hashes an arbitrary number of joined byte slices.
-//  Exported because it is used in post key negotiation proof.
+// Joins and hashes (SHA-256) an arbitrary number of byte slices.
+//
+// NOTE: Exported because it is used in post key negotiation proof.
 //
 func Hash(x ...[]byte) []byte {
   // Join all byte slices in "x" ([][]byte)
