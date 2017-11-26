@@ -1,5 +1,5 @@
 //
-// Define safe prime groups, along with some primative operations on the groups.
+// Define safe prime groups along with some primative operations on the groups.
 //
 
 package srp
