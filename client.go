@@ -16,18 +16,10 @@ package srp
 
 import "errors"
 
-// type Client struct {
-//   I []byte
-//   s []byte
-//   v []byte
-//   a []byte
-//   A []byte
-// }
-
-//
-// NewClient
+// NewClient -
 //
 // Params:
+//  I ([]byte) - a client's identifier
 //  p ([]byte) - a client's passphrase
 //
 // Return:
@@ -35,24 +27,26 @@ import "errors"
 //  []byte - a client's verifer
 //  error
 //
-func NewClient(p []byte) ([]byte, []byte, error) {
-  // Generate a random salt. Default to 16 bytes.
-  s, err := randomBytes(16)
-  if err != nil {
-    return nil, nil, err
-  }
+func NewClient(I, p []byte) ([]byte, []byte, error) {
+	// Generate a random salt. Default to 16 bytes.
+	//   <salt> = random()
+	s, err := randomBytes(16)
+	if err != nil {
+		return nil, nil, err
+	}
 
-  // Compute the secret "x" value
-  x := Hash(s, p)
+	// Compute the secret "x" value
+	//   x = SHA(<salt> | SHA(<username> | ":" | <raw password>))
+	x := Hash(s, I, []byte(":"), p)
 
-  // Calculate the verifer.
-  v := dGrp.exp(dGrp.g, x)
+	// Calculate the verifer.
+	//   <password verifier> = v = g^x % N
+	v := dGrp.exp(dGrp.g, x)
 
-  return s, v, nil
+	return s, v, nil
 }
 
-//
-// InitiateHandshake
+// InitiateHandshake -
 //
 // Params:
 //  None
@@ -63,24 +57,24 @@ func NewClient(p []byte) ([]byte, []byte, error) {
 //  error
 //
 func InitiateHandshake() ([]byte, []byte, error) {
-  // Create a random secret "a" value
-  a, err := randomBytes(32)
-  if err != nil {
-    return nil, nil, err
-  }
+	// Create a random secret "a" value
+	a, err := randomBytes(32)
+	if err != nil {
+		return nil, nil, err
+	}
 
-  // Calculate "A" based on "a"
-  A := dGrp.exp(dGrp.g, a)
+	// Calculate "A" based on "a"
+	A := dGrp.exp(dGrp.g, a)
 
-  return A, a, nil
+	return A, a, nil
 }
 
-//
-// CompleteHandshake
+// CompleteHandshake -
 //
 // Params:
 //  A ([]byte) - the client's session public key
 //  a ([]byte) - the client's session private key
+//  I ([]byte) - the client's identifier
 //  p ([]byte) - the client's secret passphrase
 //  s ([]byte) - the client's salt looked up by the server
 //  B ([]byte) - the server's public key for this session
@@ -89,40 +83,41 @@ func InitiateHandshake() ([]byte, []byte, error) {
 //  []byte - the client's computed session key
 //  error
 //
-func CompleteHandshake(A, a, p, s, B []byte) ([]byte, error) {
-  // "B" cannot be zero
-  if isZero(B) {
-    return nil, errors.New("\"B\" value is zero. Aborting handshake.")
-  }
+func CompleteHandshake(A, a, I, p, s, B []byte) ([]byte, error) {
+	// "B" cannot be zero
+	if isZero(B) {
+		return nil, errors.New("\"B\" value is zero. Aborting handshake")
+	}
 
-  // Calculate "u"
-  u := Hash(A, B)
+	// Calculate "u"
+	u := Hash(A, B)
 
-  // "u" cannot be zero
-  if isZero(u) {
-    return nil, errors.New("\"u\" value is zero. Aborting handshake.")
-  }
+	// "u" cannot be zero
+	if isZero(u) {
+		return nil, errors.New("\"u\" value is zero. Aborting handshake")
+	}
 
-  // Compute the secret "x" value
-  x := Hash(s, p)
+	// Compute the secret "x" value
+	//   x = SHA(<salt> | SHA(<username> | ":" | <raw password>))
+	x := Hash(s, I, []byte(":"), p)
 
-  // Calculate the SRP-6a version of the multiplier parameter "k"
-  k := Hash(dGrp.N, dGrp.g)
+	// Calculate the SRP-6a version of the multiplier parameter "k"
+	k := Hash(dGrp.N, dGrp.g)
 
-  // Compute the pseudo-session key, "S"
-  //   S = (B - kg^x) ^ (a + ux)
-  //
-  //    let l = (B - kg^x)
-  //        r = (a + ux)
-  //
-  //    ... so that S = l ^ r
-  l := dGrp.sub(B, dGrp.mul(k, dGrp.exp(dGrp.g, x)))
-  r := dGrp.add(a, dGrp.mul(u, x))
-  S := dGrp.exp(l, r)
+	// Compute the pseudo-session key, "S"
+	//   S = (B - kg^x) ^ (a + ux)
+	//
+	//    let l = (B - kg^x),
+	//        r = (a + ux)
+	//
+	//    ... so that S = l ^ r
+	l := dGrp.sub(B, dGrp.mul(k, dGrp.exp(dGrp.g, x)))
+	r := dGrp.add(a, dGrp.mul(u, x))
+	S := dGrp.exp(l, r)
 
-  // The actual session key is the hash of the pseudo-session key "S"
-  K := Hash(S)
+	// The actual session key is the hash of the pseudo-session key "S"
+	K := Hash(S)
 
-  // Return K
-  return K, nil
+	// Return K
+	return K, nil
 }
