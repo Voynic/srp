@@ -2,8 +2,7 @@ package srp
 
 import "errors"
 
-//
-// Handshake
+// Handshake -
 //
 // Params:
 //  A ([]byte) - a client's generated public key
@@ -19,32 +18,32 @@ import "errors"
 //       be transmitted to the client.
 //
 func Handshake(A, v []byte) ([]byte, []byte, error) {
-  // "A" cannot be zero
-  if isZero(A) {
-    return nil, nil, errors.New("Server found \"A\" to be zero. Aborting handshake.")
-  }
+	// "A" cannot be zero
+	if isZero(A) {
+		return nil, nil, errors.New("Server found \"A\" to be zero. Aborting handshake")
+	}
 
-  // Create a random secret "b"
-  b, err := randomBytes(32)
-  if err != nil {
-    return nil, nil, err
-  }
+	// Create a random secret "b"
+	b, err := randomBytes(32)
+	if err != nil {
+		return nil, nil, err
+	}
 
-  // Calculate the SRP-6a version of the multiplier parameter "k"
-  k := Hash(dGrp.N, dGrp.g)
+	// Calculate the SRP-6a version of the multiplier parameter "k"
+	k := Hash(dGrp.N, dGrp.g)
 
-  // Compute a value "B" based on "b"
-  B := dGrp.add(dGrp.mul(k, v), dGrp.exp(dGrp.g, b))
+	// Compute a value "B" based on "b"
+	B := dGrp.add(dGrp.mul(k, v), dGrp.exp(dGrp.g, b))
 
-  // Calculate "u"
-  u := Hash(A, B)
+	// Calculate "u"
+	u := Hash(A, B)
 
-  // Compute the pseudo-session key, "S"
-  //  S = (Av^u) ^ b
-  S := dGrp.exp(dGrp.mul(A, dGrp.exp(v, u)), b)
+	// Compute the pseudo-session key, "S"
+	//  S = (Av^u) ^ b
+	S := dGrp.exp(dGrp.mul(A, dGrp.exp(v, u)), b)
 
-  // The actual session key is the hash of the pseudo-session key "S"
-  K := Hash(S)
+	// The actual session key is the hash of the pseudo-session key "S"
+	K := Hash(S)
 
-  return B, K, nil
+	return B, K, nil
 }
