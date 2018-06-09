@@ -1,3 +1,11 @@
+# Table of Contents
+
+- [Introduction](#introduction)
+- [Usage](#usage)
+  * [Client Registration](#client-registration)
+  * [Session Creation](#session-creation)
+- [References](#references)
+
 # Introduction
 
 SRP is a key exchange protocol published by Stanford in 1998. It is described well on their [website](http://srp.stanford.edu/):
