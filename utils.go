@@ -34,6 +34,7 @@ func randomBytes(n int) ([]byte, error) {
 	return bytes, nil
 }
 
+// Hash -
 //
 // Joins and hashes (SHA-256) an arbitrary number of byte slices.
 //
@@ -48,25 +49,4 @@ func Hash(x ...[]byte) []byte {
 
 	// Return the hash as a byte slice (rather than byte array)
 	return hash[:]
-}
-
-// Pad -
-//
-// Pad a byte slice with leading zeros.
-//
-func Pad(bytes []byte, length int) []byte {
-	// In cases where the desired padding length is less than or equal to the
-	//	length of the provided bytes, just return bytes.
-	if length <= len(bytes) {
-		return bytes
-	}
-
-	// The number of padding bytes to prepend before the provided bytes
-	paddingLength := length - len(bytes)
-
-	// The byte slice to prepend before the provided bytes
-	paddingBytes := make([]byte, paddingLength)
-
-	// Return [padding bytes] + [provided bytes]
-	return append(paddingBytes, bytes...)
 }

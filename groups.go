@@ -178,3 +178,28 @@ func (g *group) sub(x1, x2 []byte) []byte {
 	// Finally, return the resulting bytes.
 	return resultBytes
 }
+
+//
+// Pad bytes to the length of the group. For example, if a 12-byte slice is
+// provided, and the group is 4096-bits (512 bytes), then the provided slice
+// will be prepended with 500 zeros and a new 512-byte will be returned.
+//
+func (g *group) pad(bytes []byte) []byte {
+	// The group size (length), in bytes.
+	groupSize := len(g.N)
+
+	// In cases where the group size is less than or equal to the length of the
+	//   provided bytes, just return the provided bytes.
+	if groupSize <= len(bytes) {
+		return bytes
+	}
+
+	// The number of padding bytes to prepend before the provided bytes
+	paddingLength := groupSize - len(bytes)
+
+	// The byte slice to prepend before the provided bytes
+	paddingBytes := make([]byte, paddingLength)
+
+	// Return [padding bytes] + [provided bytes]
+	return append(paddingBytes, bytes...)
+}
