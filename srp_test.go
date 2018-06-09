@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/voynic/srp"
+	"gitlab.com/voynic/srp"
 )
 
 func TestFullHandshake(t *testing.T) {
