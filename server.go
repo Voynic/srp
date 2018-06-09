@@ -1,6 +1,10 @@
 package srp
 
-import "errors"
+import (
+	"encoding/base64"
+	"errors"
+	"fmt"
+)
 
 // Handshake -
 //
@@ -30,20 +34,27 @@ func Handshake(A, v []byte) ([]byte, []byte, error) {
 	}
 
 	// Calculate the SRP-6a version of the multiplier parameter "k"
-	k := Hash(dGrp.N, dGrp.g)
+	// TODO: Pad g
+	k := Hash(Pad(dGrp.N, 512), Pad(dGrp.g, 512))
+	fmt.Println("srp_k:  " + base64.StdEncoding.EncodeToString(k))
 
 	// Compute a value "B" based on "b"
+	//   B = (v + g^b) % N
 	B := dGrp.add(dGrp.mul(k, v), dGrp.exp(dGrp.g, b))
 
 	// Calculate "u"
-	u := Hash(A, B)
+	// TODO: Pad A and B
+	u := Hash(Pad(A, 512), Pad(B, 512))
+	fmt.Println("srp_u:  " + base64.StdEncoding.EncodeToString(u))
 
 	// Compute the pseudo-session key, "S"
 	//  S = (Av^u) ^ b
 	S := dGrp.exp(dGrp.mul(A, dGrp.exp(v, u)), b)
+	fmt.Println("srp_S:  " + base64.StdEncoding.EncodeToString(S))
 
 	// The actual session key is the hash of the pseudo-session key "S"
 	K := Hash(S)
+	fmt.Println("srp_K:  " + base64.StdEncoding.EncodeToString(K))
 
 	return B, K, nil
 }

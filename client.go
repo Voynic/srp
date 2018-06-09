@@ -14,7 +14,11 @@
 
 package srp
 
-import "errors"
+import (
+	"encoding/base64"
+	"errors"
+	"fmt"
+)
 
 // NewClient -
 //
@@ -37,7 +41,7 @@ func NewClient(I, p []byte) ([]byte, []byte, error) {
 
 	// Compute the secret "x" value
 	//   x = SHA(<salt> | SHA(<username> | ":" | <raw password>))
-	x := Hash(s, I, []byte(":"), p)
+	x := Hash(s, Hash(I, []byte(":"), p))
 
 	// Calculate the verifer.
 	//   <password verifier> = v = g^x % N
@@ -90,7 +94,9 @@ func CompleteHandshake(A, a, I, p, s, B []byte) ([]byte, error) {
 	}
 
 	// Calculate "u"
-	u := Hash(A, B)
+	// TODO: Pad A and B
+	u := Hash(Pad(A, 4096), Pad(B, 4096))
+	fmt.Println("srp_A:  " + base64.StdEncoding.EncodeToString(u))
 
 	// "u" cannot be zero
 	if isZero(u) {
@@ -99,10 +105,13 @@ func CompleteHandshake(A, a, I, p, s, B []byte) ([]byte, error) {
 
 	// Compute the secret "x" value
 	//   x = SHA(<salt> | SHA(<username> | ":" | <raw password>))
-	x := Hash(s, I, []byte(":"), p)
+	x := Hash(s, Hash(I, []byte(":"), p))
+	fmt.Println("srp_x:  " + base64.StdEncoding.EncodeToString(x))
 
 	// Calculate the SRP-6a version of the multiplier parameter "k"
-	k := Hash(dGrp.N, dGrp.g)
+	// TODO: Pad g
+	k := Hash(dGrp.N, Pad(dGrp.g, 4096))
+	fmt.Println("srp_k:  " + base64.StdEncoding.EncodeToString(k))
 
 	// Compute the pseudo-session key, "S"
 	//   S = (B - kg^x) ^ (a + ux)
@@ -114,6 +123,7 @@ func CompleteHandshake(A, a, I, p, s, B []byte) ([]byte, error) {
 	l := dGrp.sub(B, dGrp.mul(k, dGrp.exp(dGrp.g, x)))
 	r := dGrp.add(a, dGrp.mul(u, x))
 	S := dGrp.exp(l, r)
+	fmt.Println("srp_S:  " + base64.StdEncoding.EncodeToString(S))
 
 	// The actual session key is the hash of the pseudo-session key "S"
 	K := Hash(S)
