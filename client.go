@@ -15,9 +15,7 @@
 package srp
 
 import (
-	"encoding/base64"
 	"errors"
-	"fmt"
 )
 
 // NewClient -
@@ -32,9 +30,9 @@ import (
 //  error
 //
 func NewClient(I, p []byte) ([]byte, []byte, error) {
-	// Generate a random salt. Default to 16 bytes.
+	// Generate a random salt. Default to 32 bytes.
 	//   <salt> = random()
-	s, err := randomBytes(16)
+	s, err := randomBytes(32)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -62,12 +60,14 @@ func NewClient(I, p []byte) ([]byte, []byte, error) {
 //
 func InitiateHandshake() ([]byte, []byte, error) {
 	// Create a random secret "a" value
+	//   a = random()
 	a, err := randomBytes(32)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	// Calculate "A" based on "a"
+	//   A = g^a % N
 	A := dGrp.exp(dGrp.g, a)
 
 	return A, a, nil
@@ -94,9 +94,7 @@ func CompleteHandshake(A, a, I, p, s, B []byte) ([]byte, error) {
 	}
 
 	// Calculate "u"
-	// TODO: Pad A and B
-	u := Hash(Pad(A, 4096), Pad(B, 4096))
-	fmt.Println("srp_A:  " + base64.StdEncoding.EncodeToString(u))
+	u := Hash(dGrp.pad(A), dGrp.pad(B))
 
 	// "u" cannot be zero
 	if isZero(u) {
@@ -106,12 +104,9 @@ func CompleteHandshake(A, a, I, p, s, B []byte) ([]byte, error) {
 	// Compute the secret "x" value
 	//   x = SHA(<salt> | SHA(<username> | ":" | <raw password>))
 	x := Hash(s, Hash(I, []byte(":"), p))
-	fmt.Println("srp_x:  " + base64.StdEncoding.EncodeToString(x))
 
 	// Calculate the SRP-6a version of the multiplier parameter "k"
-	// TODO: Pad g
-	k := Hash(dGrp.N, Pad(dGrp.g, 4096))
-	fmt.Println("srp_k:  " + base64.StdEncoding.EncodeToString(k))
+	k := Hash(dGrp.N, dGrp.pad(dGrp.g))
 
 	// Compute the pseudo-session key, "S"
 	//   S = (B - kg^x) ^ (a + ux)
@@ -123,7 +118,6 @@ func CompleteHandshake(A, a, I, p, s, B []byte) ([]byte, error) {
 	l := dGrp.sub(B, dGrp.mul(k, dGrp.exp(dGrp.g, x)))
 	r := dGrp.add(a, dGrp.mul(u, x))
 	S := dGrp.exp(l, r)
-	fmt.Println("srp_S:  " + base64.StdEncoding.EncodeToString(S))
 
 	// The actual session key is the hash of the pseudo-session key "S"
 	K := Hash(S)
