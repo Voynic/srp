@@ -19,8 +19,8 @@ There are two discrete processes defined by SRP:
 identifier := []byte("user123@example.com")
 passphrase := []byte("Password123!")
 
-// SRP creates a salt and verifier based on the client's passphrase
-s, v, err  := srp.NewClient(passphrase)
+// SRP creates a salt and verifier based on the client's identifier and passphrase
+s, v, err  := srp.NewClient(identifier, passphrase)
 
 if err != nil {
   panic("Client creation failed!")
