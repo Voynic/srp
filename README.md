@@ -1,3 +1,11 @@
+# Table of Contents
+
+- [Introduction](#introduction)
+- [Usage](#usage)
+  * [Client Registration](#client-registration)
+  * [Session Creation](#session-creation)
+- [References](#references)
+
 # Introduction
 
 SRP is a key exchange protocol published by Stanford in 1998. It is described well on their [website](http://srp.stanford.edu/):
@@ -19,8 +27,8 @@ There are two discrete processes defined by SRP:
 identifier := []byte("user123@example.com")
 passphrase := []byte("Password123!")
 
-// SRP creates a salt and verifier based on the client's passphrase
-s, v, err  := srp.NewClient(passphrase)
+// SRP creates a salt and verifier based on the client's identifier and passphrase
+s, v, err  := srp.NewClient(identifier, passphrase)
 
 if err != nil {
   panic("Client creation failed!")
@@ -126,3 +134,12 @@ if subtle.ConstantTimeCompare(serverProof, srp.Hash(s, K)) != 1 {
   panic("Client does not accept server's proof!")
 }
 ```
+
+# References
+
+| Name                     | Link                                | Note                            |
+|--------------------------|-------------------------------------|---------------------------------|
+| Stanford's SRP Home Page | http://srp.stanford.edu/            |                                 |
+| RFC 2945                 | https://tools.ietf.org/html/rfc2945 | Older SRP-3 implementation      |
+| RFC 5054                 | https://tools.ietf.org/html/rfc5054 | Newer SRP-6(a) implementation   |
+| node-js                  | https://github.com/mozilla/node-srp | A compatible Javascript library |
