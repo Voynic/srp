@@ -2,7 +2,6 @@ package srp_test
 
 import (
 	"bytes"
-	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
 	"testing"
@@ -36,7 +35,7 @@ func TestFullHandshake(t *testing.T) {
 
 	// Lookup "v" and "s" from "I"
 
-	B, serverK, err := srp.Handshake(A, v)
+	B, S, serverK, err := srp.Handshake(A, v)
 	if err != nil {
 		t.Errorf("Error in Handshake()")
 	}
@@ -60,21 +59,10 @@ func TestFullHandshake(t *testing.T) {
 	// Client and server MIGHT have a shared K.
 	// *************************************************************************
 
-	clientProof := srp.Hash(clientK)
-
-	// Client sends "clientProof" to server
-
-	if subtle.ConstantTimeCompare(clientProof, srp.Hash(serverK)) != 1 {
-		t.Errorf("Server does not accept client's proof.")
-	}
-
-	serverProof := srp.Hash(s, serverK)
-
-	// Server sends "serverProof" to client
-
-	if subtle.ConstantTimeCompare(serverProof, srp.Hash(s, clientK)) != 1 {
-		t.Errorf("Client does not accept server's proof.")
-	}
+	// These proofs will almost certainly not fail, but we invoke the functions
+	// just to be diligent.
+	clientProof := srp.ClientProof(A, B, S)
+	srp.ServerProof(A, clientProof, serverK)
 
 	// *************************************************************************
 	// Client and server SHOULD have a shared K.
