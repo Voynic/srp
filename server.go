@@ -12,23 +12,23 @@ import (
 //
 // Return:
 //  []byte - the generated public key "B", to be sent to the client
+//  []byte - the computed pre-session key "S", to be kept secret
 //  []byte - the computed session key "K", to be kept secret
 //  error
 //
-//  NOTE Be very careful not to confuse the secret key "K", and the public key
-//       "B". Both are returned by this function, but unlike "B", "K" must never
-//       be transmitted to the client.
+//  NOTE: Only the returned "B" value should be sent to the client. "S" and "K"
+//		  are very secret.
 //
-func Handshake(A, v []byte) ([]byte, []byte, error) {
+func Handshake(A, v []byte) ([]byte, []byte, []byte, error) {
 	// "A" cannot be zero
 	if isZero(A) {
-		return nil, nil, errors.New("Server found \"A\" to be zero. Aborting handshake")
+		return nil, nil, nil, errors.New("Server found \"A\" to be zero. Aborting handshake")
 	}
 
 	// Create a random secret "b"
 	b, err := randomBytes(32)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	// Calculate the SRP-6a version of the multiplier parameter "k"
@@ -48,5 +48,20 @@ func Handshake(A, v []byte) ([]byte, []byte, error) {
 	// The actual session key is the hash of the pseudo-session key "S"
 	K := Hash(S)
 
-	return B, K, nil
+	return B, S, K, nil
+}
+
+// ServerProof -
+//
+// Params:
+//  A ([]byte) - the client's session public key
+//  ClientProof ([]byte) - the client's proof as computed with ClientProof()
+//  K ([]byte) - the computed session secret
+//
+// Return:
+//  []byte - the client's proof of knowing K
+//  error
+//
+func ServerProof(A, ClientProof, K []byte) []byte {
+	return Hash(A, ClientProof, K)
 }

@@ -125,3 +125,18 @@ func CompleteHandshake(A, a, I, p, s, B []byte) ([]byte, error) {
 	// Return K
 	return K, nil
 }
+
+// ClientProof -
+//
+// Params:
+//  A ([]byte) - the client's session public key
+//  B ([]byte) - the server's public key for this session
+//  S ([]byte) - the session's pseudo-session key
+//
+// Return:
+//  []byte - the client's proof of knowing K
+//  error
+//
+func ClientProof(A, B, S []byte) []byte {
+	return Hash(A, B, S)
+}
