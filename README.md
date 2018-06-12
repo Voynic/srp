@@ -142,4 +142,5 @@ if subtle.ConstantTimeCompare(serverProof, srp.Hash(s, K)) != 1 {
 | Stanford's SRP Home Page | http://srp.stanford.edu/            |                                 |
 | RFC 2945                 | https://tools.ietf.org/html/rfc2945 | Older SRP-3 implementation      |
 | RFC 5054                 | https://tools.ietf.org/html/rfc5054 | Newer SRP-6(a) implementation   |
-| node-js                  | https://github.com/mozilla/node-srp | A compatible Javascript library |
+| node-srp                 | https://github.com/mozilla/node-srp | A compatible Javascript library |
+| node-srp                 | https://github.com/voynic/node-srp  | A more modern fork of ^         |
