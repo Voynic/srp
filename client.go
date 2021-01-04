@@ -140,3 +140,27 @@ func CompleteHandshake(A, a, I, p, s, B []byte) ([]byte, error) {
 func ClientProof(A, B, S []byte) []byte {
 	return Hash(A, B, S)
 }
+
+// CalculateM -
+//
+// Params:
+//  I ([]byte) - the client's identifier
+//  s ([]byte) - the client's salt looked up by the server
+//  A ([]byte) - the client's session public key
+//  B ([]byte) - the server's public key for this session
+//  K ([]byte) - the client's computed session key
+//
+// Return:
+//  []byte - the client's proof of knowing K
+//  error
+//
+func CalculateM(I, s, A, B, K []byte) []byte {
+	h_N := Hash(dGrp.N)
+	h_g := Hash(dGrp.g)
+	h_xor := make([]byte, 32)
+	for i := 0; i < 32; i++ {
+		h_xor[i] = h_N[i] ^ h_g[i]
+	}
+	
+	return Hash(h_xor, Hash(I), s, A, B, K)
+}
