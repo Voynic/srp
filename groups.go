@@ -10,7 +10,7 @@ import "math/big"
 // Define the default group to be 4096 bit. Use of a group should always be done
 // via the "dGrp" variable, rather than calling a "group****()" method directly
 //
-var dGrp = group4096()
+var dGrp = group2048()
 
 type group struct {
 	g []byte // Group generator
